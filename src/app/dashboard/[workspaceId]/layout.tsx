@@ -1,4 +1,7 @@
-import { getUserNotification, onAuthenticateUser } from "@/server-actions/user.action";
+import React from "react";
+import { 
+    getUserNotification, 
+    onAuthenticateUser } from "@/server-actions/user.action";
 import { 
     getAllUserVideos, 
     getUserWorkspaces, 
@@ -8,9 +11,10 @@ import {
 import { VerifyAccessToWorkspace } from "@/types/verifyAccessToWorkspace.type";
 import { Subscription, User, Workspace } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { QueryClient } from '@tanstack/react-query'
+import { dehydrate, Hydrate, QueryClient } from '@tanstack/react-query';
+import QueryProvider from "@/lib/query-provider";
 
-export default async function Layout(){
+export default async function Layout({ children }: { children: React.ReactNode}){
     type ExtendedUser = User & {
         workspaces: Workspace[];
         subscription: Subscription | null;
@@ -69,4 +73,11 @@ export default async function Layout(){
         queryFn: () => getUserWorkspaces(),
     })
 
+    return (
+        <QueryProvider>
+            <Hydrate state={dehydrate(query)}>
+            { children }
+            </Hydrate>
+        </QueryProvider>
+      );
 }
