@@ -1,20 +1,23 @@
 import React from "react";
 import { 
     getUserNotification, 
-    onAuthenticateUser } from "@/server-actions/user.action";
+    onAuthenticateUser, 
+} from "@/server-actions/user.action";
 import { 
     getAllUserVideos, 
     getUserWorkspaces, 
     getWorkspaceFolders, 
-    verifyAccessToWorkspace 
+    verifyAccessToWorkspace, 
 } from "@/server-actions/workspace.action";
 import { VerifyAccessToWorkspace } from "@/types/verifyAccessToWorkspace.type";
 import { Subscription, User, Workspace } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { dehydrate, Hydrate, QueryClient } from '@tanstack/react-query';
-import QueryProvider from "@/lib/query-provider";
+import Sidebar from "@/components/global/sidebar";
 
-export default async function Layout({ children }: { children: React.ReactNode}){
+export default async function Layout({params, children }: {params: {workspaceId: string}, children: React.ReactNode}){
+    const { workspaceId } = params;
+
     type ExtendedUser = User & {
         workspaces: Workspace[];
         subscription: Subscription | null;
@@ -73,11 +76,11 @@ export default async function Layout({ children }: { children: React.ReactNode})
         queryFn: () => getUserWorkspaces(),
     })
 
-    return (
-        <QueryProvider>
-            <Hydrate state={dehydrate(query)}>
-            { children }
-            </Hydrate>
-        </QueryProvider>
-      );
+    return <Hydrate state={dehydrate(query)}>
+        <Sidebar 
+            activeWorkspaceId={workspaceId} 
+            dehydratedState={dehydrate(query)}
+        />
+        {children}
+    </Hydrate>
 }
